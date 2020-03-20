@@ -63,6 +63,47 @@ def explore(player, moves):
                     queue.enqueue(been_there)
     return []
 
+#create method to check for exits that haven't been tried
+def untried(player, new_moves):
+    exits = map[player.current_room.id]
+    untried = []
+    for direction in exits:
+        if exits[direction] == "?":
+             untried.append(direction)
+    if len(untried) == 0:
+        unexplored = explore(player, new_moves)
+        new_room = player.current_room.id
+        for room in unexplored:
+            for direction in map[new_room]:
+                if map[new_room][direction] == room:
+                    new_moves.enqueue(direction)
+                    new_room = room
+                    break
+    else:
+        new_moves.enqueue(untried[random.randint(0, len(untried) -1)])
+unexplored_room = {}
+for direction in player.current_room.get_exits():
+    unexplored_room[direction] = "?"
+map[world.starting_room.id] = unexplored_room
+new_moves = Queue()
+untried(player, new_moves)
+reverse_dir = {"n": "s", "s": "n", "e": "w", "w": "e"}
+while new_moves.size() > 0:
+    start = player.current_room.id
+    move = new_moves.dequeue()
+    player.travel(move)
+    traversal_path.append(move)
+    next_room = player.current_room.id
+    map[start][move] = next_room
+    if next_room not in map:
+        map[next_room] = {}
+        for exit in player.current_room.get_exits():
+            map[next_room][exit] = "?"
+    map[next_room][reverse_dir[move]] = start
+    if new_moves.size() == 0:
+        untried(player, new_moves)
+
+
 # TRAVERSAL TEST
 visited_rooms = set()
 player.current_room = world.starting_room
